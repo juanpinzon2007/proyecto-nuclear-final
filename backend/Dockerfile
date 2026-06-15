@@ -19,4 +19,4 @@ RUN python manage.py collectstatic --noinput
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py seed_admin && python manage.py seed_demo && exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers ${GUNICORN_WORKERS:-2} --timeout ${GUNICORN_TIMEOUT:-120}"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py seed_admin && python manage.py seed_demo && exec gunicorn config.wsgi:application --bind [::]:${PORT:-8080} --workers ${GUNICORN_WORKERS:-2} --timeout ${GUNICORN_TIMEOUT:-120}"]
