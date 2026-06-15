@@ -161,13 +161,18 @@ Variables del servicio `frontend`:
 
 ```env
 PORT=8080
+API_UPSTREAM=https://ficho-backend-production.up.railway.app
 ```
 
-El archivo `nginx.conf` ya reenvia `/api/...` a `http://backend.railway.internal:8080/api/...`. Por eso el servicio Django en Railway debe llamarse exactamente `backend`.
+`API_UPSTREAM` debe ser el origen del backend sin slash final. En tu despliegue actual:
 
-Nginx recibe `/api/...` desde Angular y lo reenvia al backend por la red privada de Railway. Esto mantiene conectados login, casos, intentos, decisiones, herramientas, bitacoras, retroalimentacion y Pingüino IA.
+```env
+API_UPSTREAM=https://ficho-backend-production.up.railway.app
+```
 
-No apuntes `/api` al dominio publico del frontend; eso crea un ciclo y Railway puede responder `508` o `504`.
+Nginx usa `proxy_pass ${API_UPSTREAM};` dentro de `location /api/`. Al no poner `/api/` en `proxy_pass`, Nginx conserva la ruta original completa. Por ejemplo, `/api/auth/login/` se envia al backend como `/api/auth/login/`, sin duplicar ni eliminar `/api/`.
+
+No apuntes `API_UPSTREAM` al dominio publico del frontend; eso crea un ciclo y Railway puede responder `508`, `504` o `502`.
 
 ### 3. Verificacion en Railway
 
