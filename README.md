@@ -161,10 +161,14 @@ Variables del servicio `frontend`:
 
 ```env
 PORT=8080
-API_UPSTREAM=https://${{backend.RAILWAY_PUBLIC_DOMAIN}}
+API_UPSTREAM=http://backend.railway.internal:8080
 ```
 
-`API_UPSTREAM` no debe terminar en `/`. Nginx recibe `/api/...` desde Angular y lo reenvia al backend. Esto mantiene conectados login, casos, intentos, decisiones, herramientas, bitacoras, retroalimentacion y Pingüino IA.
+`API_UPSTREAM` no debe terminar en `/`. En Railway debe apuntar al dominio privado del servicio backend para evitar ciclos 508: si el servicio se llama `backend`, usa `http://backend.railway.internal:8080`. Si le pusiste otro nombre al servicio, cambia `backend` por el nombre real del servicio.
+
+Nginx recibe `/api/...` desde Angular y lo reenvia al backend por la red privada de Railway. Esto mantiene conectados login, casos, intentos, decisiones, herramientas, bitacoras, retroalimentacion y Pingüino IA.
+
+No uses el dominio del frontend en `API_UPSTREAM`; eso hace que `/api/auth/login/` vuelva al mismo frontend y Railway responda `508`.
 
 ### 3. Verificacion en Railway
 
