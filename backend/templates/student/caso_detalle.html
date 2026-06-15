@@ -1,0 +1,139 @@
+﻿{% extends "student/base.html" %}
+{% block title %}{{ caso.titulo }}{% endblock %}
+{% block body_class %}theme-{{ case_theme.slug }} anim-{{ case_theme.animation }}{% endblock %}
+{% block content %}
+<section class="detail-hero">
+  <div class="detail-copy">
+    <div class="card-topline">
+      <span class="chip chip-warning">{{ caso.codigo }}</span>
+      <span class="mono-ref">INTENTOS_LIBRES</span>
+    </div>
+    <h1>{{ caso.titulo }}</h1>
+    <p>{{ caso.contexto|default:caso.descripcion }}</p>
+    <p class="theme-copy">{{ case_theme.label }} / {{ case_theme.mood }}</p>
+    {% if caso.advertencia_contenido %}<div class="warning-banner">{{ caso.advertencia_contenido }}</div>{% endif %}
+    <div class="tag-cloud">
+      <span class="tag-pill">{{ caso.get_nivel_display }}</span>
+      {% for tematica in caso.tematicas.all %}<span class="tag-pill">{{ tematica.nombre }}</span>{% endfor %}
+      {% for competencia in caso.competencias.all %}<span class="tag-pill tag-accent">{{ competencia.nombre }}</span>{% endfor %}
+    </div>
+  </div>
+  <aside class="detail-side">
+    <div class="metric-frame wide">
+      <span>MEJOR_RUTA</span>
+      <strong>{{ case_summary.mejor_ruta|floatformat:0 }} pts</strong>
+    </div>
+    {% if active_intent %}
+      <a class="command-button" href="{% url 'student_simulacion' active_intent.id %}">REANUDAR_SIMULACIÓN</a>
+    {% else %}
+      <a class="command-button" href="{% url 'student_iniciar_simulacion' caso.id %}">INICIAR_SIMULACIÓN</a>
+    {% endif %}
+  </aside>
+</section>
+
+<section class="detail-grid">
+  <article class="panel-card">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">BRIEFING_DEL_CASO</p>
+        <h2>Objetivos y estructura</h2>
+      </div>
+    </div>
+    <p>{{ caso.objetivos_aprendizaje|default:"Sin objetivos adicionales registrados." }}</p>
+    <div class="timeline-list">
+      {% for escena in escenas %}
+        <div class="timeline-row">
+          <span>{{ escena.orden|stringformat:"02d" }}</span>
+          <div>
+            <strong>{{ escena.titulo }}</strong>
+            <small>{{ escena.get_tipo_display }}</small>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article class="panel-card">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">ACTORES_DEL_CASO</p>
+        <h2>Sujetos involucrados</h2>
+      </div>
+    </div>
+    <div class="stack-list">
+      {% for actor in actores %}
+        <div class="info-tile">
+          <strong>{{ actor.nombre }}</strong>
+          <small>{{ actor.rol_en_caso|default:"Actor del escenario" }}</small>
+          <p>{{ actor.descripcion|default:"Sin descripción adicional." }}</p>
+        </div>
+      {% empty %}
+        <p class="empty-state">No hay actores configurados.</p>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="detail-grid">
+  <article class="panel-card">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">RECURSOS_PREVIOS</p>
+        <h2>Biblioteca habilitada</h2>
+      </div>
+    </div>
+    <div class="stack-list">
+      {% for item in recursos %}
+        <div class="info-tile">
+          <strong>{{ item.recurso.titulo }}</strong>
+          <small>{{ item.recurso.get_tipo_display }}{% if item.competencia %} / {{ item.competencia.nombre }}{% endif %}</small>
+          <p>{{ item.recurso.resumen|default:item.recurso.contenido|truncatechars:170 }}</p>
+          {% if item.recurso.url_externa %}<a class="text-link" href="{{ item.recurso.url_externa }}" target="_blank" rel="noopener">ABRIR_RECURSO</a>{% endif %}
+        </div>
+      {% empty %}
+        <p class="empty-state">Sin recursos previos.</p>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article class="panel-card">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">CAJA_DE_HERRAMIENTAS</p>
+        <h2>Instrumentos disponibles</h2>
+      </div>
+    </div>
+    <div class="stack-list">
+      {% for item in herramientas %}
+        <div class="info-tile">
+          <strong>{{ item.herramienta.nombre }}</strong>
+          <small>{% if item.escena %}Escena {{ item.escena.orden }}{% else %}Uso global{% endif %}{% if item.obligatoria %} / obligatoria{% endif %}</small>
+          <p>{{ item.herramienta.descripcion|default:"Sin descripción." }}</p>
+        </div>
+      {% empty %}
+        <p class="empty-state">No hay herramientas configuradas.</p>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+
+<section class="panel-card">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">HISTORIAL_DE_INTENTOS</p>
+      <h2>Actividad del caso</h2>
+    </div>
+  </div>
+  <div class="route-list">
+    {% for intento in intentos %}
+      <a class="route-row" href="{% url 'student_simulacion' intento.id %}">
+        <span>#{{ intento.numero_intento }}</span>
+        <strong>{{ intento.get_estado_display }}</strong>
+        <small>{{ intento.puntaje_total }} pts</small>
+      </a>
+    {% empty %}
+      <p class="empty-state">Sin intentos.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

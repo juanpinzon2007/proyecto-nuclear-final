@@ -1,0 +1,57 @@
+﻿{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Panel estudiante{% endblock %} | Simulador Psicosocial CUE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'student/student-panel.css' %}">
+</head>
+<body class="neuro-body {% block body_class %}{% endblock %}">
+  <div class="scanline"></div>
+  <div class="noise-overlay"></div>
+  <header class="student-topbar">
+    <a class="brand" href="{% url 'student_dashboard' %}">
+      <span class="brand-avatar">PSI</span>
+      <span class="brand-copy">
+        <strong>Simulador Psicosocial CUE</strong>
+        <small>Simulador Psicosocial CUE</small>
+      </span>
+    </a>
+    <div class="topbar-status" {% if request.user.is_authenticated %}data-session-start="{{ request.user.last_login|date:'c' }}"{% endif %}>
+      <span class="status-item">
+        <span class="status-label">OPERADOR</span>
+        <strong>{{ request.user.nombres|default:"Invitado" }}</strong>
+      </span>
+      <span class="status-item">
+        <span class="status-label">ROL</span>
+        <strong>{{ request.user.get_rol_display|default:"Estudiante" }}</strong>
+      </span>
+      <span class="status-item timer-item">
+        <span class="status-label"><span class="material-symbols-outlined topbar-inline-icon">timer</span>SESIÓN</span>
+        <strong data-session-clock>00:00:00</strong>
+      </span>
+    </div>
+    <nav class="student-nav">
+      <a href="{% url 'root_home' %}"><span class="material-symbols-outlined">space_dashboard</span>Panel</a>
+      <a href="{% url 'student_casos' %}"><span class="material-symbols-outlined">library_books</span>Casos</a>
+      <a href="{% url 'global_logout' %}"><span class="material-symbols-outlined">logout</span>Salir</a>
+    </nav>
+  </header>
+  <main class="student-shell">
+    {% if messages %}
+      <div class="messages-stack">
+        {% for message in messages %}
+          <p class="flash flash-{{ message.tags|default:'info' }}">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <script src="{% static 'student/student-panel.js' %}"></script>
+</body>
+</html>

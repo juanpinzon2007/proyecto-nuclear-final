@@ -1,0 +1,321 @@
+﻿{% extends "admin/base_site.html" %}
+
+{% block content %}
+<section class="gregory-shell" data-gregory>
+  <div class="gregory-hero">
+    <div>
+      <p class="gregory-kicker">Agente IA administrativo</p>
+      <h1>Pingüino</h1>
+      <p>Asistente para crear usuarios, casos, escenarios, decisiones, recursos, rúbricas y asignaciones conectadas al frontend del estudiante.</p>
+    </div>
+    <div class="gregory-status {% if openai_ready %}is-ready{% else %}is-missing{% endif %}">
+      <span>Modelo</span>
+      <strong>{{ openai_model }}</strong>
+      <small>{% if openai_ready %}OpenAI conectado{% else %}Falta OPENAI_API_KEY{% endif %}</small>
+    </div>
+  </div>
+
+  <div class="gregory-grid">
+    <form class="gregory-panel gregory-form" data-gregory-form>
+      {% csrf_token %}
+      <label for="gregory-message">Instrucción para Pingüino</label>
+      <textarea id="gregory-message" name="message" rows="9" placeholder="Ejemplo: Crea un caso publicado sobre violencia familiar con tres escenas, dos decisiones por escena y asígnalo al grupo Psicología 3."></textarea>
+      <label class="gregory-check">
+        <input type="checkbox" name="execute">
+        <span>Ejecutar cambios en la base de datos. Si no se marca, Pingüino solo prepara el plan.</span>
+      </label>
+      <div class="gregory-actions">
+        <button type="submit">Enviar a Pingüino</button>
+        <a href="{% url 'admin:index' %}">Volver al panel</a>
+      </div>
+    </form>
+
+    <aside class="gregory-panel gregory-guide">
+      <h2>Puede ayudarte con</h2>
+      <ul>
+        <li>Crear usuarios estudiantes, docentes o administradores.</li>
+        <li>Crear grupos académicos y matrículas.</li>
+        <li>Diseñar casos, actores, escenas y decisiones.</li>
+        <li>Publicar y asignar casos para que aparezcan en el frontend.</li>
+        <li>Crear recursos, herramientas, rúbricas y criterios.</li>
+      </ul>
+      <p>Los estudiantes no tienen acceso a esta pantalla. Solo ven los casos y recursos publicados o asignados.</p>
+    </aside>
+  </div>
+
+  <section class="gregory-panel gregory-output" data-gregory-output hidden>
+    <div class="gregory-output-head">
+      <h2>Respuesta</h2>
+      <span data-gregory-mode></span>
+    </div>
+    <p data-gregory-message></p>
+    <div class="gregory-columns">
+      <div>
+        <h3>Operaciones propuestas</h3>
+        <pre data-gregory-operations></pre>
+      </div>
+      <div>
+        <h3>Resultado de ejecución</h3>
+        <pre data-gregory-executed></pre>
+      </div>
+    </div>
+  </section>
+</section>
+
+<style>
+  .gregory-shell {
+    display: grid;
+    gap: 22px;
+    margin: 8px 0 28px;
+  }
+
+  .gregory-hero,
+  .gregory-panel {
+    border: 1px solid rgba(16, 185, 129, .28);
+    background:
+      linear-gradient(135deg, rgba(3, 12, 16, .95), rgba(7, 23, 30, .91)),
+      radial-gradient(circle at 12% 18%, rgba(0, 229, 244, .16), transparent 35%);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, .22);
+  }
+
+  .gregory-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 30px;
+  }
+
+  .gregory-kicker {
+    margin: 0 0 10px;
+    color: #22d3ee;
+    font: 700 12px "JetBrains Mono", monospace;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+
+  .gregory-hero h1 {
+    margin: 0;
+    color: #eef8f9;
+    font-size: clamp(42px, 7vw, 84px);
+    line-height: .85;
+    letter-spacing: .03em;
+  }
+
+  .gregory-hero p {
+    max-width: 720px;
+    margin: 14px 0 0;
+    color: #b7c5c8;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  .gregory-status {
+    min-width: 220px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, .18);
+    align-self: stretch;
+  }
+
+  .gregory-status span,
+  .gregory-status small {
+    display: block;
+    color: #9aa8ad;
+    font: 700 11px "JetBrains Mono", monospace;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .gregory-status strong {
+    display: block;
+    margin: 10px 0;
+    color: #e8fbff;
+    font: 800 24px "Inter", sans-serif;
+  }
+
+  .gregory-status.is-ready {
+    border-color: rgba(16, 185, 129, .55);
+  }
+
+  .gregory-status.is-missing {
+    border-color: rgba(251, 146, 60, .7);
+  }
+
+  .gregory-grid,
+  .gregory-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(280px, .85fr);
+    gap: 18px;
+  }
+
+  .gregory-panel {
+    padding: 22px;
+  }
+
+  .gregory-form label,
+  .gregory-guide h2,
+  .gregory-output h2,
+  .gregory-output h3 {
+    color: #e8fbff;
+  }
+
+  .gregory-form label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 800;
+  }
+
+  .gregory-form textarea {
+    width: 100%;
+    min-height: 240px;
+    padding: 16px;
+    border: 1px solid rgba(34, 211, 238, .32);
+    color: #e8fbff;
+    background: rgba(0, 0, 0, .42);
+    resize: vertical;
+  }
+
+  .gregory-form textarea:focus {
+    outline: 2px solid rgba(34, 211, 238, .3);
+    border-color: #22d3ee;
+  }
+
+  .gregory-check {
+    display: flex !important;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 18px 0;
+    color: #b7c5c8 !important;
+    font-weight: 600 !important;
+  }
+
+  .gregory-check input {
+    margin-top: 3px;
+    accent-color: #22d3ee;
+  }
+
+  .gregory-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .gregory-actions button,
+  .gregory-actions a {
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid #22d3ee;
+    color: #061016;
+    background: #22d3ee;
+    font: 800 12px "JetBrains Mono", monospace;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+
+  .gregory-actions a {
+    display: inline-grid;
+    place-items: center;
+    color: #e8fbff;
+    background: transparent;
+  }
+
+  .gregory-guide ul {
+    margin: 12px 0 18px;
+    padding-left: 20px;
+    color: #c8d7da;
+    line-height: 1.7;
+  }
+
+  .gregory-guide p,
+  .gregory-output p {
+    color: #b7c5c8;
+    line-height: 1.6;
+  }
+
+  .gregory-output-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .gregory-output-head span {
+    color: #22d3ee;
+    font: 700 12px "JetBrains Mono", monospace;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .gregory-output pre {
+    max-height: 360px;
+    overflow: auto;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    color: #dff9ff;
+    background: rgba(0, 0, 0, .42);
+    white-space: pre-wrap;
+  }
+
+  @media (max-width: 900px) {
+    .gregory-hero,
+    .gregory-grid,
+    .gregory-columns {
+      grid-template-columns: 1fr;
+      display: grid;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    const root = document.querySelector('[data-gregory]');
+    if (!root) return;
+    const form = root.querySelector('[data-gregory-form]');
+    const output = root.querySelector('[data-gregory-output]');
+    const message = root.querySelector('[data-gregory-message]');
+    const mode = root.querySelector('[data-gregory-mode]');
+    const operations = root.querySelector('[data-gregory-operations]');
+    const executed = root.querySelector('[data-gregory-executed]');
+    const csrf = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = form.querySelector('button');
+      button.disabled = true;
+      button.textContent = 'Procesando...';
+      output.hidden = false;
+      message.textContent = 'Pingüino está analizando la solicitud.';
+      mode.textContent = '';
+      operations.textContent = '';
+      executed.textContent = '';
+
+      try {
+        const response = await fetch(window.location.href, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+          body: JSON.stringify({
+            message: form.message.value,
+            dry_run: !form.execute.checked
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || 'No fue posible procesar la solicitud.');
+        const confidence = Number(data.confidence ?? 0);
+        const confirmation = data.requires_confirmation ? ' - requiere confirmación' : '';
+        message.textContent = data.assistant_message;
+        mode.textContent = `${data.dry_run ? 'Plan sin ejecutar' : 'Cambios ejecutados'} - confianza ${Math.round(confidence * 100)}%${confirmation}`;
+        operations.textContent = JSON.stringify(data.operations, null, 2);
+        executed.textContent = JSON.stringify({ executed: data.executed, errors: data.errors }, null, 2);
+      } catch (error) {
+        message.textContent = error.message;
+        mode.textContent = 'Error';
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Enviar a Pingüino';
+      }
+    });
+  })();
+</script>
+{% endblock %}
+
+

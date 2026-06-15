@@ -1,0 +1,203 @@
+﻿{% extends "student/base.html" %}
+{% block title %}Simulación{% endblock %}
+{% block body_class %}theme-{{ case_theme.slug }} anim-{{ scene_mode.animation }}{% endblock %}
+{% block content %}
+<section class="simulation-shell">
+  <article class="simulation-stage scene-{{ scene_mode.slug }}">
+    <div class="simulation-alert simulation-alert-{{ case_theme.slug }}">
+      <strong>
+        {% if case_theme.slug == "family-crisis" %}
+          STATUS: CRISIS PSICOSOCIAL
+        {% elif case_theme.slug == "hospital" %}
+          STATUS: TRIAGE CLÍNICO
+        {% elif case_theme.slug == "community" %}
+          STATUS: INTERVENCIÓN TERRITORIAL
+        {% else %}
+          STATUS: SIMULACIÓN ACTIVA
+        {% endif %}
+      </strong>
+      <span>{{ case_theme.mood }}</span>
+    </div>
+    <div class="card-topline">
+      <span class="chip chip-warning">{{ intento.caso.codigo }}</span>
+      <span class="chip {% if intento.estado == 'FINALIZADO' %}chip-success{% else %}chip-primary{% endif %}">{{ intento.get_estado_display }}</span>
+    </div>
+    <div class="simulation-head">
+      <div>
+        <p class="eyebrow">{{ scene_mode.label }} / {{ case_theme.label }}</p>
+        <h1>{% if escena %}{{ escena.titulo }}{% else %}Simulación finalizada{% endif %}</h1>
+      </div>
+      <div class="simulation-score">
+        <span>PUNTAJE</span>
+        <strong>{{ intento.puntaje_total|floatformat:0 }}</strong>
+      </div>
+    </div>
+    <div class="progress-head">
+      <span>RUTA</span>
+      <strong>Escena {{ progreso.escena_actual_orden }}/{{ progreso.total_escenas }}</strong>
+    </div>
+    <div class="segmented-progress">
+      <span style="width: {{ progreso.porcentaje }}%"></span>
+    </div>
+
+    {% if escena %}
+      <div class="case-live-visual theme-{{ case_theme.slug }}">
+        <div class="case-live-copy">
+          <span class="chip chip-primary">LIVE_FEED</span>
+          <strong>{{ escena.get_tipo_display }}</strong>
+        </div>
+      </div>
+      <div class="scene-card">
+        <p>{{ escena.contenido|linebreaksbr }}</p>
+      </div>
+    {% else %}
+      <div class="scene-card">
+        <p>Ya no hay escenas pendientes para este intento.</p>
+      </div>
+    {% endif %}
+
+    {% if decisiones and intento.estado == "EN_PROGRESO" %}
+      <form class="decision-form" method="post" action="{% url 'student_responder_decision' intento.id %}" data-decision-form>
+        {% csrf_token %}
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">INTERVENCIÓN_INMEDIATA</p>
+            <h2>Selecciona una decisión</h2>
+          </div>
+        </div>
+        {% for decision in decisiones %}
+          <label class="decision-option" data-requires-justification="{% if decision.requiere_justificacion %}true{% else %}false{% endif %}">
+            <input type="radio" name="decision_id" value="{{ decision.id }}" required>
+            <span class="decision-copy">
+              <strong>{% if forloop.counter == 1 %}OPCIÓN_A{% elif forloop.counter == 2 %}OPCIÓN_B{% elif forloop.counter == 3 %}OPCIÓN_C{% else %}OPCIÓN_{{ forloop.counter }}{% endif %}</strong>
+              <small>{{ decision.texto_decision }}</small>
+              <span class="decision-stats">
+                <b class="decision-risk {% if decision.puntaje < 0 %}is-danger{% elif decision.puntaje < 5 %}is-warning{% else %}is-success{% endif %}">
+                  {% if decision.puntaje < 0 %}RIESGO ALTO{% elif decision.puntaje < 5 %}RIESGO MEDIO{% else %}RIESGO BAJO{% endif %}
+                </b>
+                <b class="decision-score">ÉXITO {{ decision.puntaje|floatformat:0 }} pts</b>
+              </span>
+              {% if decision.consecuencia %}<em>{{ decision.consecuencia }}</em>{% endif %}
+            </span>
+          </label>
+        {% endfor %}
+        <label for="decision-justificacion">Justificación clínica</label>
+        <textarea id="decision-justificacion" name="justificacion" rows="4" placeholder="Explica por qué tomas esta decisión" data-justification-input></textarea>
+        <p class="hint-text" data-justification-hint>Algunas decisiones requieren sustento escrito antes de avanzar.</p>
+        <button type="submit" class="command-button">CONFIRMAR_DECISIÓN</button>
+      </form>
+    {% elif intento.estado == "FINALIZADO" %}
+      <a class="command-button" href="{% url 'student_retroalimentacion' intento.id %}">VER_RETROALIMENTACIÓN</a>
+    {% endif %}
+  </article>
+
+  <aside class="simulation-sidebar">
+    <section class="panel-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">MAPA_DE_RUTA</p>
+          <h2>Navegacion del caso</h2>
+        </div>
+      </div>
+      <div class="timeline-list">
+        {% for item in escenas %}
+          <div class="timeline-row {% if escena and item.id == escena.id %}is-active{% endif %}">
+            <span>{{ item.orden|stringformat:"02d" }}</span>
+            <div>
+              <strong>{{ item.titulo }}</strong>
+              <small>{{ item.get_tipo_display }}</small>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">BITÁCORA_REFLEXIVA</p>
+          <h2>Registro en vivo</h2>
+        </div>
+      </div>
+      <form method="post" action="{% url 'student_guardar_bitacora' intento.id %}" class="neuro-form">
+        {% csrf_token %}
+        <textarea name="reflexion" rows="4" placeholder="Describe la intervención y su razonamiento" required></textarea>
+        <input name="aprendizaje_clave" placeholder="Aprendizaje clave">
+        <input name="consideraciones_eticas" placeholder="Consideraciones éticas">
+        <input name="autocuidado" placeholder="Autocuidado">
+        <button type="submit" class="command-button command-button-secondary">GUARDAR_BITÁCORA</button>
+      </form>
+      <div class="stack-list">
+        {% for bitacora in bitacoras %}
+          <div class="info-tile">
+            <strong>{{ bitacora.creada_en|date:"d/m H:i" }}</strong>
+            <p>{{ bitacora.reflexion }}</p>
+          </div>
+        {% empty %}
+          <p class="empty-state">Aún no registras reflexiones.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">ACCESO_A_HERRAMIENTAS</p>
+          <h2>Instrumentos y recursos</h2>
+        </div>
+      </div>
+      {% for item in herramientas %}
+        <form method="post" action="{% url 'student_registrar_herramienta' intento.id %}" class="tool-card">
+          {% csrf_token %}
+          <input type="hidden" name="herramienta_caso_id" value="{{ item.id }}">
+          <strong>{{ item.herramienta.nombre }}</strong>
+          <small>{% if item.escena %}Escena {{ item.escena.orden }}{% else %}Herramienta global{% endif %}</small>
+          <p>{{ item.herramienta.descripcion|default:"Sin descripción." }}</p>
+          <textarea name="observaciones" rows="2" placeholder="Anota como usaras esta herramienta"></textarea>
+          <button type="submit" class="text-link button-link">REGISTRAR_USO</button>
+        </form>
+      {% empty %}
+        <p class="empty-state">No hay herramientas asignadas.</p>
+      {% endfor %}
+
+      <div class="stack-list">
+        {% for item in recursos %}
+          <details class="resource-accordion">
+            <summary>{{ item.recurso.titulo }}</summary>
+            <div>
+              <p>{{ item.recurso.resumen|default:item.recurso.contenido|truncatechars:220 }}</p>
+              {% if item.recurso.url_externa %}<a class="text-link" href="{{ item.recurso.url_externa }}" target="_blank" rel="noopener">ABRIR_RECURSO</a>{% endif %}
+            </div>
+          </details>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">RUTA_TOMADA</p>
+          <h2>Decisiones registradas</h2>
+        </div>
+      </div>
+      {% for respuesta in respuestas %}
+        <div class="info-tile">
+          <strong>{{ respuesta.escena.titulo }}</strong>
+          <small>{{ respuesta.respondida_en|date:"d/m H:i" }}</small>
+          <p>{{ respuesta.decision.texto_decision }}</p>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aún no registras decisiones.</p>
+      {% endfor %}
+      <div class="usage-log">
+        {% for uso in uso_herramientas %}
+          <div class="usage-row">
+            <span>{{ uso.herramienta.nombre }}</span>
+            <small>{{ uso.usada_en|date:"d/m H:i" }}</small>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  </aside>
+</section>
+{% endblock %}

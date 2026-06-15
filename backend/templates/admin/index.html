@@ -1,0 +1,192 @@
+﻿{% extends "admin/index.html" %}
+{% load admin_urls %}
+
+{% block sidebar %}{% endblock %}
+
+{% block content %}
+{% if request.user.rol == "DOCENTE" and not request.user.is_superuser %}
+<section class="uavh-workspace uavh-workspace--compact docente-workspace" aria-label="Panel docente del simulador">
+  <article class="uavh-menu-card gregory-entry">
+    <div class="uavh-card-head">
+      <h2>Pingüino IA</h2>
+    </div>
+    <p>Agente profesional para crear usuarios, casos, escenas, decisiones, recursos, rúbricas y asignaciones.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-tool" href="{% url 'admin_gregory' %}">Abrir Pingüino</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Estudiantes y grupos</h2>
+    </div>
+    <p>Gestión de estudiantes, grupos académicos, búsqueda e inactivación preservando historial.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-users" href="{% url 'admin:administrativo_usuario_changelist' %}?rol__exact=ESTUDIANTE">Estudiantes</a>
+      <a class="icon-groups" href="{% url 'admin:administrativo_grupoacademico_changelist' %}">Grupos</a>
+      <a class="icon-students" href="{% url 'admin:administrativo_estudiantegrupo_changelist' %}">Matrículas</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Casos situacionales</h2>
+    </div>
+    <p>Creación y mantenimiento de casos ramificados, escenas, actores y decisiones.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-case" href="{% url 'admin:simulador_caso_changelist' %}">Casos</a>
+      <a class="icon-actor" href="{% url 'admin:simulador_actorcaso_changelist' %}">Actores</a>
+      <a class="icon-scene" href="{% url 'admin:simulador_escena_changelist' %}">Escenas</a>
+      <a class="icon-decision" href="{% url 'admin:simulador_decision_changelist' %}">Decisiones</a>
+      <a class="icon-target" href="{% url 'admin:simulador_decisioncompetencia_changelist' %}">Impactos</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Herramientas y recursos</h2>
+    </div>
+    <p>Banco de herramientas profesionales y materiales teóricos asociados a casos.</p>
+    <div class="uavh-link-grid catalogos-grid">
+      <a class="icon-badge" href="{% url 'admin:simulador_competencia_changelist' %}">Competencias</a>
+      <a class="icon-topic" href="{% url 'admin:simulador_tematica_changelist' %}">Temáticas</a>
+      <a class="icon-tag" href="{% url 'admin:simulador_etiqueta_changelist' %}">Etiquetas</a>
+      <a class="icon-tool" href="{% url 'admin:simulador_herramientaprofesional_changelist' %}">Herramientas</a>
+      <a class="icon-tool-case" href="{% url 'admin:simulador_herramientaporcaso_changelist' %}">Herramientas asignadas</a>
+      <a class="icon-book" href="{% url 'admin:simulador_recurso_changelist' %}">Recursos</a>
+      <a class="icon-link" href="{% url 'admin:simulador_recursocaso_changelist' %}">Recursos asignados</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Asignación y simulación</h2>
+    </div>
+    <p>Asignación de casos, seguimiento de intentos, rutas, decisiones y bitácoras.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-assign" href="{% url 'admin:simulador_asignacioncaso_changelist' %}">Asignaciones</a>
+      <a class="icon-progress" href="{% url 'admin:simulador_intento_seguimiento_vivo' %}">Seguimiento en vivo</a>
+      <a class="icon-play" href="{% url 'admin:simulador_intento_changelist' %}">Intentos</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Evaluación docente</h2>
+    </div>
+    <p>Rúbricas, criterios, comentarios, retroalimentación y comparación de rutas.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-rubric" href="{% url 'admin:simulador_rubrica_changelist' %}">Rúbricas</a>
+      <a class="icon-checklist" href="{% url 'admin:simulador_criteriorubrica_changelist' %}">Criterios</a>
+      <a class="icon-grade" href="{% url 'admin:simulador_evaluacionintento_changelist' %}">Evaluaciones</a>
+      <a class="icon-comment" href="{% url 'admin:simulador_comentariodocente_changelist' %}">Comentarios</a>
+      <a class="icon-feedback" href="{% url 'admin:simulador_retroalimentacion_changelist' %}">Feedback</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Analíticas y reportes</h2>
+    </div>
+    <p>Indicadores, alertas de bajo desempeño y reportes académicos.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-chart" href="{% url 'admin:simulador_indicadordesempeno_changelist' %}">Indicadores</a>
+      <a class="icon-alert" href="{% url 'admin:simulador_alertadesempeno_changelist' %}">Alertas</a>
+      <a class="icon-report" href="{% url 'admin:simulador_reportedesempeno_changelist' %}">Reportes</a>
+    </div>
+  </article>
+</section>
+{% else %}
+<section class="uavh-workspace uavh-workspace--compact" aria-label="Menú principal del simulador">
+  <article class="uavh-menu-card gregory-entry">
+    <div class="uavh-card-head">
+      <h2>Pingüino IA</h2>
+    </div>
+    <p>Agente profesional para crear usuarios, casos, escenas, decisiones, recursos, rúbricas y asignaciones.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-tool" href="{% url 'admin_gregory' %}">Abrir Pingüino</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Configuración académica</h2>
+    </div>
+    <p>Base institucional para docentes, estudiantes y grupos académicos.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-users" href="{% url 'admin:administrativo_usuario_changelist' %}">Usuarios</a>
+      <a class="icon-groups" href="{% url 'admin:administrativo_grupoacademico_changelist' %}">Grupos</a>
+      <a class="icon-students" href="{% url 'admin:administrativo_estudiantegrupo_changelist' %}">Matrículas</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Diseño del caso</h2>
+    </div>
+    <p>Construcción de experiencias situacionales ramificadas.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-case" href="{% url 'admin:simulador_caso_changelist' %}">Casos</a>
+      <a class="icon-actor" href="{% url 'admin:simulador_actorcaso_changelist' %}">Actores</a>
+      <a class="icon-scene" href="{% url 'admin:simulador_escena_changelist' %}">Escenas</a>
+      <a class="icon-decision" href="{% url 'admin:simulador_decision_changelist' %}">Decisiones</a>
+      <a class="icon-target" href="{% url 'admin:simulador_decisioncompetencia_changelist' %}">Impactos</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Catálogos y recursos</h2>
+    </div>
+    <p>Clasificación, herramientas profesionales y material teórico.</p>
+    <div class="uavh-link-grid catalogos-grid">
+      <a class="icon-badge" href="{% url 'admin:simulador_competencia_changelist' %}">Competencias</a>
+      <a class="icon-topic" href="{% url 'admin:simulador_tematica_changelist' %}">Temáticas</a>
+      <a class="icon-tag" href="{% url 'admin:simulador_etiqueta_changelist' %}">Etiquetas</a>
+      <a class="icon-tool" href="{% url 'admin:simulador_herramientaprofesional_changelist' %}">Herramientas</a>
+      <a class="icon-tool-case" href="{% url 'admin:simulador_herramientaporcaso_changelist' %}">Herramientas asignadas</a>
+      <a class="icon-book" href="{% url 'admin:simulador_recurso_changelist' %}">Recursos</a>
+      <a class="icon-link" href="{% url 'admin:simulador_recursocaso_changelist' %}">Recursos asignados</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Asignación y simulación</h2>
+    </div>
+    <p>Seguimiento del recorrido del estudiante dentro de cada caso.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-assign" href="{% url 'admin:simulador_asignacioncaso_changelist' %}">Asignaciones</a>
+      <a class="icon-progress" href="{% url 'admin:simulador_intento_seguimiento_vivo' %}">Seguimiento en vivo</a>
+      <a class="icon-play" href="{% url 'admin:simulador_intento_changelist' %}">Intentos</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Evaluación y retroalimentación</h2>
+    </div>
+    <p>Revisión docente, rúbricas, comentarios y comparación de rutas.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-rubric" href="{% url 'admin:simulador_rubrica_changelist' %}">Rúbricas</a>
+      <a class="icon-checklist" href="{% url 'admin:simulador_criteriorubrica_changelist' %}">Criterios</a>
+      <a class="icon-grade" href="{% url 'admin:simulador_evaluacionintento_changelist' %}">Evaluaciones</a>
+      <a class="icon-comment" href="{% url 'admin:simulador_comentariodocente_changelist' %}">Comentarios</a>
+      <a class="icon-feedback" href="{% url 'admin:simulador_retroalimentacion_changelist' %}">Feedback</a>
+    </div>
+  </article>
+
+  <article class="uavh-menu-card">
+    <div class="uavh-card-head">
+      <h2>Analíticas y reportes</h2>
+    </div>
+    <p>Indicadores, alertas y reportes académicos.</p>
+    <div class="uavh-link-grid">
+      <a class="icon-chart" href="{% url 'admin:simulador_indicadordesempeno_changelist' %}">Indicadores</a>
+      <a class="icon-alert" href="{% url 'admin:simulador_alertadesempeno_changelist' %}">Alertas</a>
+      <a class="icon-report" href="{% url 'admin:simulador_reportedesempeno_changelist' %}">Reportes</a>
+    </div>
+  </article>
+</section>
+{% endif %}
+{% endblock %}

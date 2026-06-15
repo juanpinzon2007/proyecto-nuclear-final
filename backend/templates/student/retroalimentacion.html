@@ -1,0 +1,133 @@
+﻿{% extends "student/base.html" %}
+{% block title %}Retroalimentación{% endblock %}
+{% block body_class %}theme-{{ case_theme.slug }} anim-calm-fade{% endblock %}
+{% block content %}
+<section class="detail-hero">
+  <div class="detail-copy">
+    <p class="eyebrow">INFORME_FINAL</p>
+    <h1>Resultados de simulación</h1>
+    <p>{{ intento.caso.titulo }} / intento {{ intento.numero_intento }} / estado {{ intento.get_estado_display }}</p>
+    <p class="theme-copy">{{ case_theme.label }} / {{ case_theme.mood }}</p>
+  </div>
+  <aside class="detail-side">
+    <div class="metric-frame wide">
+      <span>ÍNDICE_GLOBAL</span>
+      <strong>{{ porcentaje_global }}/100</strong>
+    </div>
+    <a class="command-button" href="{% url 'student_casos' %}">NUEVA_SIMULACIÓN</a>
+  </aside>
+</section>
+
+<section class="feedback-grid">
+  <article class="panel-card">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">REPORTE_GRÁFICO</p>
+        <h2>Mapa de competencias</h2>
+      </div>
+    </div>
+    <div class="radar-shell">
+      <svg viewBox="0 0 100 100" class="radar-chart" aria-label="Radar de competencias">
+        <polygon points="50,14 84,32 78,76 22,76 16,32" class="radar-grid-shape"></polygon>
+        <polygon points="{{ radar.polygon }}" class="radar-value-shape"></polygon>
+        {% for axis in radar.axes %}
+          <line x1="50" y1="50" x2="{{ axis.x }}" y2="{{ axis.y }}" class="radar-axis"></line>
+        {% endfor %}
+      </svg>
+      <div class="radar-labels">
+        {% for item in radar.items %}
+          <div class="radar-label-row">
+            <span>{{ item.label }}</span>
+            <strong>{{ item.value }}/100</strong>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="progress-head">
+      <span>RUTA_ÓPTIMA_ESTIMADA</span>
+      <strong>{{ ruta_óptima|floatformat:0 }} pts</strong>
+    </div>
+    <div class="segmented-progress">
+      <span style="width: {{ porcentaje_global }}%"></span>
+    </div>
+  </article>
+
+  <article class="panel-card">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">INFORME_AUTOMÁTICO</p>
+        <h2>Retroalimentación generada</h2>
+      </div>
+    </div>
+    {% if feedback %}
+      <div class="stack-list">
+        <div class="info-tile">
+          <strong>Resumen</strong>
+          <p>{{ feedback.resumen }}</p>
+        </div>
+        <div class="info-tile">
+          <strong>Aciertos</strong>
+          <p>{{ feedback.aciertos }}</p>
+        </div>
+        <div class="info-tile">
+          <strong>Aspectos por mejorar</strong>
+          <p>{{ feedback.errores }}</p>
+        </div>
+        <div class="info-tile">
+          <strong>Recomendaciones</strong>
+          <p>{{ feedback.recomendaciones|linebreaksbr }}</p>
+        </div>
+      </div>
+    {% else %}
+      <p class="empty-state">Sin retroalimentación generada.</p>
+    {% endif %}
+  </article>
+
+  <article class="panel-card">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">INDICADORES_Y_COMENTARIOS</p>
+        <h2>Revisión docente y analítica</h2>
+      </div>
+    </div>
+    <div class="stack-list">
+      {% for comentario in comentarios %}
+        <div class="info-tile">
+          <strong>{{ comentario.docente.nombres }} {{ comentario.docente.apellidos }}</strong>
+          <small>{% if comentario.escena %}{{ comentario.escena.titulo }}{% else %}Comentario general{% endif %}</small>
+          <p>{{ comentario.comentario }}</p>
+        </div>
+      {% endfor %}
+      {% for indicador in indicadores %}
+        <div class="info-tile">
+          <strong>{{ indicador.nombre_indicador }}</strong>
+          <small>{{ indicador.competencia.nombre|default:"General" }}</small>
+          <p>{{ indicador.valor }} {{ indicador.unidad }}</p>
+        </div>
+      {% empty %}
+        <p class="empty-state">No hay indicadores adicionales para este intento.</p>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article class="panel-card">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">DESGLOSE_DE_EVENTOS</p>
+        <h2>Secuencia de decisiones</h2>
+      </div>
+    </div>
+    <div class="route-list">
+      {% for respuesta in respuestas %}
+        <div class="route-row static">
+          <span>{{ respuesta.respondida_en|date:"H:i:s" }}</span>
+          <strong>{{ respuesta.decision.texto_decision }}</strong>
+          <small>{{ respuesta.escena.titulo }}</small>
+        </div>
+      {% empty %}
+        <p class="empty-state">No hay decisiones registradas.</p>
+      {% endfor %}
+    </div>
+  </article>
+</section>
+{% endblock %}

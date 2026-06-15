@@ -1,0 +1,6 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+  <li><a href="{% url 'admin:simulador_intento_seguimiento_vivo' %}" class="addlink">Seguimiento en vivo</a></li>
+  {{ block.super }}
+{% endblock %}

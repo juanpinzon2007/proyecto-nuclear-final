@@ -1,0 +1,115 @@
+﻿{% extends "student/base.html" %}
+{% block title %}Casos{% endblock %}
+{% block content %}
+<section class="page-banner">
+  <p class="eyebrow">REPOSITORIO_DE_ÉXITO</p>
+  <h1>Biblioteca centralizada de simulaciones</h1>
+  <p>Filtra por categoría, competencia, nivel y estado. Cada tarjeta queda enlazada con el backend real para abrir briefing, simulación, bitácora y retroalimentación.</p>
+  <a class="text-link" href="{% url 'student_casos' %}">EXPORTAR_DATA</a>
+</section>
+
+<section class="panel-card filter-panel">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">FILTROS_DE_NAVEGACIÓN</p>
+      <h2>Explora por categorías</h2>
+    </div>
+  </div>
+  <form method="get" class="catalog-form">
+    <label class="filter-field">
+      <span>BÚSQUEDA</span>
+      <input type="search" name="q" value="{{ active_filters.q }}" placeholder="Título, código o temática">
+    </label>
+    <label class="filter-field">
+      <span>NEURO_TRASTORNO</span>
+      <select name="tematica">
+        <option value="">Todos los espectros</option>
+        {% for tematica in catalog_filters.tematicas %}
+          <option value="{{ tematica.id }}" {% if active_filters.tematica == tematica.id|stringformat:"s" %}selected{% endif %}>{{ tematica.nombre }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="filter-field">
+      <span>MODO_INTERVENCIÓN</span>
+      <select name="competencia">
+        <option value="">Todas las competencias</option>
+        {% for competencia in catalog_filters.competencias %}
+          <option value="{{ competencia.id }}" {% if active_filters.competencia == competencia.id|stringformat:"s" %}selected{% endif %}>{{ competencia.nombre }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="filter-field">
+      <span>NIVEL_RESOLUCIÓN</span>
+      <select name="nivel">
+        <option value="">Todos los niveles</option>
+        {% for nivel in catalog_filters.niveles %}
+          <option value="{{ nivel.value }}" {% if active_filters.nivel == nivel.value %}selected{% endif %}>{{ nivel.label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="filter-field">
+      <span>ESTADO</span>
+      <select name="estado_intento">
+        {% for estado in catalog_filters.estado_intento %}
+          <option value="{{ estado.value }}" {% if active_filters.estado_intento == estado.value %}selected{% endif %}>{{ estado.label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="filter-field">
+      <span>ORDEN</span>
+      <select name="orden">
+        {% for orden in catalog_filters.ordenes %}
+          <option value="{{ orden.value }}" {% if active_filters.orden == orden.value %}selected{% endif %}>{{ orden.label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <div class="catalog-actions">
+      <button type="submit" class="command-button command-button-secondary">APLICAR_FILTROS</button>
+      <a class="text-link" href="{% url 'student_casos' %}">LIMPIAR</a>
+    </div>
+  </form>
+</section>
+
+<section class="case-grid">
+  {% for item in caso_cards %}
+    <article class="case-command-card large theme-{{ item.theme.slug }} anim-{{ item.theme.animation }}">
+      <div class="card-topline">
+        <span class="chip chip-warning">
+          {% if item.intento and item.intento.estado == "FINALIZADO" %}NIVEL_GOLD{% elif item.intento and item.intento.estado == "EN_PROGRESO" %}PRIORIDAD_ALTA{% else %}PENDIENTE{% endif %}
+        </span>
+        <span class="mono-ref">#{{ item.caso.codigo }}</span>
+      </div>
+      <div class="case-visual theme-{{ item.theme.slug }}">
+        <span>{{ item.theme.label }}</span>
+      </div>
+      <h2>{{ item.caso.titulo }}</h2>
+      <p>{{ item.caso.descripcion }}</p>
+      <div class="theme-copy">{{ item.theme.mood }}</div>
+      <div class="card-meta">
+        <span>{{ item.escenas_total }} escenas</span>
+        <span>{{ item.decisiones_total }} decisiones</span>
+        <span>{{ item.herramientas_total }} herramientas</span>
+        <span>{{ item.recursos_total }} recursos</span>
+      </div>
+      {% if item.progreso %}
+        <div class="progress-head">
+          <span>RESOLUCIÓN</span>
+          <strong>{{ item.progreso.porcentaje }}%</strong>
+        </div>
+        <div class="segmented-progress small">
+          <span style="width: {{ item.progreso.porcentaje }}%"></span>
+        </div>
+      {% else %}
+        <span class="chip">SIN_INICIAR</span>
+      {% endif %}
+      <div class="case-actions">
+        <a class="command-button" href="{% url 'student_caso_detalle' item.caso.id %}">
+          {% if item.intento and item.intento.estado == "EN_PROGRESO" %}CONTINUAR{% else %}ABRIR_CASO{% endif %}
+        </a>
+      </div>
+    </article>
+  {% empty %}
+    <p class="empty-state">No hay casos disponibles.</p>
+  {% endfor %}
+</section>
+{% endblock %}

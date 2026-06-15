@@ -1,0 +1,36 @@
+from rest_framework.routers import DefaultRouter
+
+from apps.simulador import views
+
+router = DefaultRouter()
+router.register("competencias", views.CompetenciaViewSet)
+router.register("tematicas", views.TematicaViewSet)
+router.register("etiquetas", views.EtiquetaViewSet)
+router.register("casos", views.CasoViewSet)
+router.register("actores-caso", views.ActorCasoViewSet)
+router.register("escenas", views.EscenaViewSet)
+router.register("decisiones", views.DecisionViewSet)
+router.register("asignaciones-casos", views.AsignacionCasoViewSet)
+router.register("herramientas-profesionales", views.HerramientaProfesionalViewSet)
+router.register("herramientas-por-caso", views.HerramientaPorCasoViewSet)
+router.register("recursos", views.RecursoViewSet)
+router.register("recursos-casos", views.RecursoCasoViewSet)
+router.register("intentos", views.IntentoViewSet)
+router.register("progreso-escenas", views.ProgresoEscenaViewSet)
+router.register("respuestas-decisiones", views.RespuestaDecisionViewSet)
+router.register("uso-herramientas", views.UsoHerramientaIntentoViewSet)
+router.register("bitacoras-reflexivas", views.BitacoraReflexivaViewSet)
+router.register("rubricas", views.RubricaViewSet)
+router.register("criterios-rubrica", views.CriterioRubricaViewSet)
+router.register("evaluaciones-intentos", views.EvaluacionIntentoViewSet)
+router.register("evaluaciones-criterios", views.EvaluacionCriterioViewSet)
+router.register("comentarios-docente", views.ComentarioDocenteViewSet)
+router.register("retroalimentaciones", views.RetroalimentacionViewSet)
+router.register("comparaciones-intentos", views.ComparacionIntentoViewSet)
+router.register("indicadores-desempeno", views.IndicadorDesempenoViewSet)
+router.register("alertas-desempeno", views.AlertaDesempenoViewSet)
+router.register("reportes-desempeno", views.ReporteDesempenoViewSet)
+router.register("interacciones-ia", views.InteraccionIAViewSet)
+router.register("auditoria-eventos", views.AuditoriaEventoViewSet)
+
+urlpatterns = router.urls

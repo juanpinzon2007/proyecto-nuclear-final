@@ -1,0 +1,190 @@
+﻿{% extends "student/base.html" %}
+{% block title %}Panel estudiante{% endblock %}
+{% block content %}
+<section class="hero-card">
+  <div>
+    <p class="eyebrow">PANEL_DE_CONTROL</p>
+    <h1>Panel de Control</h1>
+    <p class="hero-copy">Bienvenido de nuevo, {{ request.user.nombres }}. Tu espacio de simulación está conectado con el backend real y listo para retomar rutas, registrar evidencias y cerrar casos.</p>
+    <div class="progress-block">
+      <div class="progress-head">
+        <span>PROGRESO_XP</span>
+        <strong>{{ dashboard_stats.xp_cycle_current }} / {{ dashboard_stats.xp_cycle_total }}</strong>
+      </div>
+      <div class="segmented-progress">
+        <span style="width: {{ dashboard_stats.xp_cycle_percent }}%"></span>
+      </div>
+      <small class="xp-inline">+{{ dashboard_stats.xp_total }} XP acumulado</small>
+    </div>
+  </div>
+  <aside class="hero-side">
+    <div class="metric-frame">
+      <span>NIVEL</span>
+      <strong>{{ dashboard_stats.nivel|stringformat:"02d" }}</strong>
+    </div>
+    <a class="command-button" href="{% url 'student_casos' %}">VER_CASOS</a>
+  </aside>
+</section>
+
+<section class="dashboard-grid">
+  <article class="info-card compact">
+    <p class="eyebrow">ESTADÍSTICAS_DE_RED</p>
+    <div class="stats-list">
+      <div><span>Casos resueltos</span><strong>{{ dashboard_stats.casos_resueltos }}</strong></div>
+      <div><span>Precisión promedio</span><strong>{{ dashboard_stats.precision }}%</strong></div>
+      <div><span>XP total</span><strong>+{{ dashboard_stats.xp_total }}</strong></div>
+    </div>
+  </article>
+
+  {% if active_case %}
+    <article class="info-card active-case-card theme-{{ active_case.theme.slug }} anim-{{ active_case.theme.animation }}">
+      <div class="card-topline">
+        <span class="eyebrow">CASO_ACTIVO</span>
+        <span class="chip chip-primary">SIM_EN_VIVO</span>
+      </div>
+      <div class="dashboard-case-shell">
+        <div class="case-visual theme-{{ active_case.theme.slug }}">
+          <span>{{ active_case.theme.label }}</span>
+        </div>
+        <div class="dashboard-case-copy">
+          <span class="mono-ref">REF: {{ active_case.caso.codigo }}</span>
+          <h2>{{ active_case.caso.titulo }}</h2>
+          <p>{{ active_case.caso.descripcion|truncatechars:160 }}</p>
+        </div>
+      </div>
+      <div class="progress-head">
+        <span>NODO_ACTUAL</span>
+        <strong>Escena {{ active_case.progreso.escena_actual_orden }}/{{ active_case.progreso.total_escenas }}</strong>
+      </div>
+      <div class="segmented-progress">
+        <span style="width: {{ active_case.progreso.porcentaje }}%"></span>
+      </div>
+      <a class="command-button" href="{% url 'student_simulacion' active_case.intento.id %}">REANUDAR_SIMULACIÓN</a>
+    </article>
+  {% else %}
+    <article class="info-card active-case-card">
+      <div class="card-topline">
+        <span class="eyebrow">CASO_ACTIVO</span>
+        <span class="chip">EN_ESPERA</span>
+      </div>
+      <h2>No tienes una simulación en progreso</h2>
+      <p>Abre un caso asignado para iniciar un nuevo intento o revisar tu historial.</p>
+      <a class="command-button" href="{% url 'student_casos' %}">EXPLORAR_CASOS</a>
+    </article>
+  {% endif %}
+</section>
+
+{% if competencias_panel %}
+<section class="panel-card">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">MATRIZ_DE_COMPETENCIAS</p>
+      <h2>Indicadores activos</h2>
+    </div>
+  </div>
+  <div class="competency-stack">
+    {% for item in competencias_panel %}
+      <article class="competency-card">
+        <div class="competency-head">
+          <strong>{{ item.nombre }}</strong>
+          <span>{{ item.xp }} XP</span>
+        </div>
+        <div class="segmented-progress">
+          <span style="width: {{ item.valor }}%"></span>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="section-shell">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">CASOS_ASIGNADOS</p>
+      <h2>Casos activos</h2>
+    </div>
+  </div>
+  <div class="case-grid">
+    {% for item in caso_cards %}
+      <article class="case-command-card theme-{{ item.theme.slug }} anim-{{ item.theme.animation }}">
+        <div class="card-topline">
+          <span class="chip chip-warning">{{ item.caso.codigo }}</span>
+          <span class="mono-ref">REF: {{ item.caso.nivel }}</span>
+        </div>
+        <div class="case-visual theme-{{ item.theme.slug }}">
+          <span>{{ item.theme.label }}</span>
+        </div>
+        <h3>{{ item.caso.titulo }}</h3>
+        <p>{{ item.caso.descripcion|truncatechars:140 }}</p>
+        <div class="card-meta">
+          <span>{{ item.escenas_total }} escenas</span>
+          <span>{{ item.recursos_total }} recursos</span>
+          <span>{{ item.herramientas_total }} herramientas</span>
+        </div>
+        {% if item.progreso %}
+          <div class="segmented-progress small">
+            <span style="width: {{ item.progreso.porcentaje }}%"></span>
+          </div>
+        {% endif %}
+        <a class="text-link" href="{% url 'student_caso_detalle' item.caso.id %}">
+          {% if item.intento and item.intento.estado == "EN_PROGRESO" %}CONTINUAR{% else %}ABRIR{% endif %}
+        </a>
+      </article>
+    {% empty %}
+      <p class="empty-state">Aún no tienes casos asignados.</p>
+    {% endfor %}
+  </div>
+
+  {% if alertas %}
+    <div class="alert-strip">
+      {% for alerta in alertas %}
+        <article class="alert-card">
+          <span class="chip chip-danger">{{ alerta.get_tipo_display }}</span>
+          <strong>{{ alerta.titulo }}</strong>
+          <p>{{ alerta.descripcion|default:"Alerta abierta para seguimiento docente." }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+
+<section class="quick-grid">
+  <a class="quick-tile" href="{% url 'student_casos' %}">
+    <span class="material-symbols-outlined">library_books</span>
+    <strong>BIBLIOTECA</strong>
+  </a>
+  <a class="quick-tile" href="{% if active_case %}{% url 'student_simulacion' active_case.intento.id %}{% else %}{% url 'student_casos' %}{% endif %}">
+    <span class="material-symbols-outlined">desktop_windows</span>
+    <strong>CONSOLA</strong>
+  </a>
+  <a class="quick-tile" href="{% url 'student_casos' %}">
+    <span class="material-symbols-outlined">groups</span>
+    <strong>EQUIPO</strong>
+  </a>
+  <a class="quick-tile" href="{% url 'global_logout' %}">
+    <span class="material-symbols-outlined">tune</span>
+    <strong>CONFIG</strong>
+  </a>
+</section>
+
+<section class="panel-card">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">ULTIMOS_INTENTOS</p>
+      <h2>Ruta reciente</h2>
+    </div>
+  </div>
+  <div class="route-list">
+    {% for intento in intentos %}
+      <a class="route-row" href="{% url 'student_simulacion' intento.id %}">
+        <span>{{ intento.caso.codigo }}</span>
+        <strong>Intento {{ intento.numero_intento }} / {{ intento.get_estado_display }}</strong>
+        <small>{{ intento.puntaje_total }} pts</small>
+      </a>
+    {% empty %}
+      <p class="empty-state">No has iniciado simulaciones.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

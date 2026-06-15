@@ -1,0 +1,19 @@
+.DS_Store
+.idea/
+node_modules/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Django/local runtime
+backend/.venv/
+backend/db.sqlite3
+backend/staticfiles/
+backend/.env
+
+# Logs
+*.log

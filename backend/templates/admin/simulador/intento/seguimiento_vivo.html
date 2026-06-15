@@ -1,0 +1,102 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block extrahead %}
+{{ block.super }}
+<meta http-equiv="refresh" content="8">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Inicio</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">Simulador</a>
+  &rsaquo; <a href="{% url 'admin:simulador_intento_changelist' %}">Intentos</a>
+  &rsaquo; Seguimiento en vivo
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="live-head">
+  <div>
+    <p class="live-kicker">Actualización automática cada 8 segundos</p>
+    <h1>{{ title }}</h1>
+    <p>Monitoreo operativo de intentos en progreso: escena actual, avance, decisiones, herramientas, bitácoras y última actividad.</p>
+  </div>
+  <div class="live-count">
+    <strong>{{ active_count }}</strong>
+    <span>intentos activos</span>
+  </div>
+</div>
+
+<div class="live-actions">
+  <a class="button" href="{% url 'admin:simulador_intento_seguimiento_vivo' %}">Actualizar ahora</a>
+  <a class="button" href="{% url 'admin:simulador_intento_changelist' %}?estado__exact=EN_PROGRESO">Ver lista filtrada</a>
+  <span>Última actualización: {{ updated_at|date:"Y-m-d H:i:s" }}</span>
+</div>
+
+{% if rows %}
+<div class="live-grid">
+  {% for row in rows %}
+  <article class="live-card">
+    <div class="live-card-head">
+      <div>
+        <h2>{{ row.intento.estudiante.nombres }} {{ row.intento.estudiante.apellidos }}</h2>
+        <p>{{ row.intento.estudiante.correo }}</p>
+      </div>
+      <span>#{{ row.intento.numero_intento }}</span>
+    </div>
+
+    <div class="live-case">
+      <strong>{{ row.intento.caso.codigo }}</strong>
+      <span>{{ row.intento.caso.titulo }}</span>
+    </div>
+
+    <div class="live-progress" aria-label="Progreso del intento">
+      <i style="width: {{ row.progress_percent }}%"></i>
+    </div>
+    <div class="live-metrics">
+      <div><b>{{ row.progress_percent }}%</b><span>avance</span></div>
+      <div><b>{{ row.responses_count }}</b><span>decisiones</span></div>
+      <div><b>{{ row.tools_count }}</b><span>herramientas</span></div>
+      <div><b>{{ row.journals_count }}</b><span>bitácoras</span></div>
+    </div>
+
+    <dl class="live-detail">
+      <dt>Escena actual</dt><dd>{{ row.intento.escena_actual.titulo|default:row.latest_scene }}</dd>
+      <dt>Última decisión</dt><dd>{{ row.latest_decision|truncatechars:140 }}</dd>
+      <dt>Última herramienta</dt><dd>{{ row.latest_tool }}</dd>
+      <dt>Puntaje actual</dt><dd>{{ row.intento.puntaje_total }}</dd>
+      <dt>Tiempo activo</dt><dd>{{ row.minutes_active }} min</dd>
+      <dt>Última actividad</dt><dd>{{ row.last_activity|date:"Y-m-d H:i:s" }}</dd>
+    </dl>
+
+    <div class="live-links">
+      <a class="button" href="{% url 'admin:simulador_intento_change' row.intento.id %}">Abrir intento</a>
+      <a class="button" href="{% url 'admin:simulador_respuestadecision_changelist' %}?intento__id__exact={{ row.intento.id }}">Decisiones</a>
+      <a class="button" href="{% url 'admin:simulador_bitacorareflexiva_changelist' %}?intento__id__exact={{ row.intento.id }}">Bitácoras</a>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="live-empty">
+  <h2>No hay simulaciones activas en este momento.</h2>
+  <p>Cuando un estudiante inicie o reanude un caso, aparecerá aquí automáticamente.</p>
+</div>
+{% endif %}
+
+<style>
+  .live-head{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:18px;align-items:stretch;margin-bottom:18px;padding:22px;border:1px solid rgba(0,240,255,.18);border-radius:8px;background:rgba(17,22,29,.94)}
+  .live-kicker{margin:0 0 8px;color:#7ef7ff;font:12px "JetBrains Mono",monospace;text-transform:uppercase}
+  .live-head h1{margin:0 0 8px}.live-head p{margin:0;color:#9db6be}.live-count{display:grid;place-items:center;border:1px solid rgba(0,240,255,.18);border-radius:8px;background:rgba(0,240,255,.06);text-align:center}.live-count strong{font-size:42px;color:#00ff94}.live-count span{color:#9db6be;font-weight:700}
+  .live-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}.live-actions span{margin-left:auto;color:#91a7af;font-size:12px}
+  .live-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}.live-card{display:grid;gap:14px;padding:18px;border:1px solid rgba(0,240,255,.14);border-radius:8px;background:rgba(17,22,29,.94);box-shadow:0 8px 24px rgba(0,0,0,.22)}
+  .live-card-head{display:flex;justify-content:space-between;gap:12px}.live-card h2{margin:0;color:#effcff;font-size:18px}.live-card-head p{margin:4px 0 0;color:#91a7af}.live-card-head span{height:max-content;padding:6px 10px;border:1px solid rgba(0,240,255,.3);border-radius:8px;color:#7ef7ff;font:12px "JetBrains Mono",monospace}
+  .live-case{display:grid;gap:4px;padding:12px;border-left:4px solid #00f0ff;background:rgba(0,240,255,.06)}.live-case strong{color:#7ef7ff}.live-case span{color:#d8e8ec}
+  .live-progress{height:12px;overflow:hidden;border:1px solid rgba(0,240,255,.18);border-radius:999px;background:#071017}.live-progress i{display:block;height:100%;background:linear-gradient(90deg,#00f0ff,#00ff94);box-shadow:0 0 18px rgba(0,240,255,.45)}
+  .live-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.live-metrics div{display:grid;gap:3px;padding:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}.live-metrics b{color:#effcff;font-size:18px}.live-metrics span{color:#91a7af;font-size:11px;text-transform:uppercase}
+  .live-detail{display:grid;grid-template-columns:130px 1fr;gap:8px 12px;margin:0}.live-detail dt{color:#91a7af;font-weight:800}.live-detail dd{margin:0;color:#e8f7fb}
+  .live-links{display:flex;gap:8px;flex-wrap:wrap}.live-empty{padding:28px;border:1px solid rgba(0,240,255,.14);border-radius:8px;background:rgba(17,22,29,.94);text-align:center}.live-empty p{color:#91a7af}
+  @media(max-width:700px){.live-head{grid-template-columns:1fr}.live-actions span{width:100%;margin-left:0}.live-metrics{grid-template-columns:repeat(2,1fr)}.live-detail{grid-template-columns:1fr}.live-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}
