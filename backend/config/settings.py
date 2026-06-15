@@ -46,6 +46,19 @@ def env_list(key: str, default: list[str]) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def env_secret(key: str, default: str = "") -> str:
+    value = os.environ.get(key)
+    if value:
+        return value.strip()
+    file_path = os.environ.get(f"{key}_FILE")
+    if not file_path:
+        return default
+    try:
+        return Path(file_path).read_text().strip()
+    except OSError:
+        return default
+
+
 # Load repo-root defaults first, then let backend/.env override them for local backend runs.
 load_dotenv(BASE_DIR.parent / ".env", override=True)
 load_dotenv(BASE_DIR / ".env", override=True)
@@ -196,7 +209,7 @@ SPECTACULAR_SETTINGS = {
 
 ADMIN_EMAIL = env_str("ADMIN_EMAIL", "ficho@cue.edu.co")
 ADMIN_PASSWORD = env_str("ADMIN_PASSWORD", "admin123")
-OPENAI_API_KEY = env_str("OPENAI_API_KEY", "")
+OPENAI_API_KEY = env_secret("OPENAI_API_KEY")
 OPENAI_MODEL = env_str("OPENAI_MODEL", "gpt-5.2")
 OPENAI_TIMEOUT_SECONDS = env_int("OPENAI_TIMEOUT_SECONDS", 45)
 

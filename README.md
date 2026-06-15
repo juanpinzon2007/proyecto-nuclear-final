@@ -78,12 +78,19 @@ POSTGRES_HOST=<host-postgres-o-cloud-sql>
 POSTGRES_PORT=5432
 ADMIN_EMAIL=ficho@cue.edu.co
 ADMIN_PASSWORD=<clave-admin-inicial>
-OPENAI_API_KEY=<opcional>
+OPENAI_API_KEY=<llave-openai-desde-secret-manager>
 OPENAI_MODEL=gpt-5.2
 OPENAI_TIMEOUT_SECONDS=45
 ```
 
-Para produccion, guarda `DJANGO_SECRET_KEY`, `POSTGRES_PASSWORD`, `ADMIN_PASSWORD` y `OPENAI_API_KEY` en Secret Manager, no como texto plano.
+Para produccion, guarda `DJANGO_SECRET_KEY`, `POSTGRES_PASSWORD`, `ADMIN_PASSWORD` y `OPENAI_API_KEY` en Secret Manager, no como texto plano. Pingüino IA requiere `OPENAI_API_KEY`; si no está configurada, el sistema solo mostrará el modo local de análisis y bloqueará ejecuciones reales.
+
+Si prefieres montar el secreto como archivo en Cloud Run, usa:
+
+```env
+OPENAI_API_KEY_FILE=/secrets/openai-api-key
+OPENAI_MODEL=gpt-5.2
+```
 
 ### 2. Frontend
 
