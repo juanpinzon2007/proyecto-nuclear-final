@@ -1,6 +1,7 @@
 ﻿from datetime import timedelta
 import os
 from pathlib import Path
+from urllib.parse import parse_qs, unquote, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -59,13 +60,32 @@ def env_secret(key: str, default: str = "") -> str:
         return default
 
 
+def database_from_url(url: str) -> dict[str, object]:
+    parsed = urlparse(url)
+    query = parse_qs(parsed.query)
+    options = {"sslmode": query.get("sslmode", ["require"])[0]}
+    return {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": unquote(parsed.path.lstrip("/")),
+        "USER": unquote(parsed.username or ""),
+        "PASSWORD": unquote(parsed.password or ""),
+        "HOST": parsed.hostname or "",
+        "PORT": str(parsed.port or 5432),
+        "CONN_MAX_AGE": 60,
+        "OPTIONS": options,
+    }
+
+
 # Load repo-root defaults first, then let backend/.env override them for local backend runs.
 load_dotenv(BASE_DIR.parent / ".env", override=True)
 load_dotenv(BASE_DIR / ".env", override=True)
 
 SECRET_KEY = env_str("DJANGO_SECRET_KEY", "dev-only-change-me")
 DEBUG = env_bool("DJANGO_DEBUG", True)
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", ["localhost", "127.0.0.1", ".run.app"])
+ALLOWED_HOSTS = env_list(
+    "DJANGO_ALLOWED_HOSTS",
+    ["localhost", "127.0.0.1", ".run.app", ".up.railway.app", ".railway.app", "healthcheck.railway.app"],
+)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -116,6 +136,8 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
+database_url = env_str("DATABASE_URL", "")
+
 if env_str("DB_ENGINE", "postgres").lower() == "sqlite":
     DATABASES = {
         "default": {
@@ -123,15 +145,17 @@ if env_str("DB_ENGINE", "postgres").lower() == "sqlite":
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+elif database_url:
+    DATABASES = {"default": database_from_url(database_url)}
 else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": env_str("POSTGRES_DB", "psicologia"),
-            "USER": env_str("POSTGRES_USER", "postgres"),
-            "PASSWORD": env_str("POSTGRES_PASSWORD", "postgres"),
-            "HOST": env_str("POSTGRES_HOST", "localhost"),
-            "PORT": env_str("POSTGRES_PORT", "5432"),
+            "NAME": env_str("POSTGRES_DB", env_str("PGDATABASE", "psicologia")),
+            "USER": env_str("POSTGRES_USER", env_str("PGUSER", "postgres")),
+            "PASSWORD": env_str("POSTGRES_PASSWORD", env_str("PGPASSWORD", "postgres")),
+            "HOST": env_str("POSTGRES_HOST", env_str("PGHOST", "localhost")),
+            "PORT": env_str("POSTGRES_PORT", env_str("PGPORT", "5432")),
             "CONN_MAX_AGE": 60,
         }
     }
@@ -171,9 +195,11 @@ CORS_ALLOWED_ORIGINS = env_list(
     ],
 )
 CORS_ALLOWED_ORIGIN_REGEXES = env_list("CORS_ALLOWED_ORIGIN_REGEXES", [r"^https://.*\.run\.app$"])
+if not os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES"):
+    CORS_ALLOWED_ORIGIN_REGEXES.append(r"^https://.*\.up\.railway\.app$")
 CSRF_TRUSTED_ORIGINS = env_list(
     "CSRF_TRUSTED_ORIGINS",
-    ["https://*.run.app", "http://localhost:4200", "http://127.0.0.1:4200"],
+    ["https://*.run.app", "https://*.up.railway.app", "http://localhost:4200", "http://127.0.0.1:4200"],
 )
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", not DEBUG)

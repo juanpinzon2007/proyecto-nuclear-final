@@ -124,6 +124,65 @@ https://URL-DEL-FRONTEND.run.app/login
 
 Prueba con el usuario estudiante demo despues de que el backend ejecute migraciones y datos semilla.
 
+## Despliegue en Railway desde GitHub
+
+Railway debe desplegar este repositorio como monorepo con tres servicios:
+
+- `Postgres`: base de datos PostgreSQL creada desde Railway.
+- `backend`: root directory `/backend`, config file `/backend/railway.json`.
+- `frontend`: root directory `/frontend-estudiante-angular/app`, config file `/frontend-estudiante-angular/app/railway.json`.
+
+Railway permite definir un root directory por servicio en monorepos y usar config-as-code con `railway.json`; si configuras una ruta custom, debe ser absoluta dentro del repo, por ejemplo `/backend/railway.json`.
+
+### 1. Backend en Railway
+
+Variables del servicio `backend`:
+
+```env
+DJANGO_DEBUG=False
+DJANGO_SECRET_KEY=<secreto-largo>
+DJANGO_ALLOWED_HOSTS=.up.railway.app,.railway.app,healthcheck.railway.app
+CSRF_TRUSTED_ORIGINS=https://*.up.railway.app
+CORS_ALLOWED_ORIGIN_REGEXES=^https://.*\.up\.railway\.app$
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+ADMIN_EMAIL=ficho@cue.edu.co
+ADMIN_PASSWORD=<clave-admin-inicial>
+OPENAI_API_KEY=<llave-openai>
+OPENAI_MODEL=gpt-5.2
+OPENAI_TIMEOUT_SECONDS=45
+FRONTEND_STUDENT_LOGIN_URL=https://${{frontend.RAILWAY_PUBLIC_DOMAIN}}/login
+```
+
+El backend ya acepta `DATABASE_URL` de Railway. Tambien puede usar `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD` y `PGDATABASE` si prefieres configurar variables individuales.
+
+### 2. Frontend en Railway
+
+Variables del servicio `frontend`:
+
+```env
+PORT=8080
+API_UPSTREAM=https://${{backend.RAILWAY_PUBLIC_DOMAIN}}
+```
+
+`API_UPSTREAM` no debe terminar en `/`. Nginx recibe `/api/...` desde Angular y lo reenvia al backend. Esto mantiene conectados login, casos, intentos, decisiones, herramientas, bitacoras, retroalimentacion y Pingüino IA.
+
+### 3. Verificacion en Railway
+
+Backend:
+
+```text
+https://BACKEND.up.railway.app/health/
+https://BACKEND.up.railway.app/api/docs/
+```
+
+Frontend:
+
+```text
+https://FRONTEND.up.railway.app/login
+```
+
+Si Pingüino muestra "Falta llave OpenAI", falta configurar `OPENAI_API_KEY` en el servicio `backend` o redeployar ese servicio despues de agregar la variable.
+
 ## Claves de prueba
 
 ```text
